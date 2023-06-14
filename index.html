@@ -1,125 +1,87 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>pivnica</title>
-</head>
-<body>
-  <h1>pivnica</h1>
+// GitHub repository details
+const username = 'lowlune';
+const repo = 'pivnica';
+const filename = 'values.json';
+const token = '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';
 
-  <div>
-    <h2>Adram</h2>
-    <p id="adram">0</p>
-    <button onclick="increaseValue('adram')">Increase by 1</button>
-    <button onclick="decreaseValue('adram')">Decrease by 10</button>
-  </div>
+// Values state
+let values = {
+  adram: 0,
+  active: 0,
+  reaver: 0,
+  falco: 0
+};
 
-  <div>
-    <h2>Active</h2>
-    <p id="active">0</p>
-    <button onclick="increaseValue('active')">Increase by 1</button>
-    <button onclick="decreaseValue('active')">Decrease by 10</button>
-  </div>
+// Helper function to update the display
+function updateDisplay() {
+  for (const key in values) {
+    document.getElementById(key).textContent = values[key];
+  }
+}
 
-  <div>
-    <h2>Reaver</h2>
-    <p id="reaver">0</p>
-    <button onclick="increaseValue('reaver')">Increase by 1</button>
-    <button onclick="decreaseValue('reaver')">Decrease by 10</button>
-  </div>
+// Helper function to save values to GitHub
+async function saveValuesToGitHub() {
+  try {
+    const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+    const content = JSON.stringify(values, null, 2);
+    const encodedContent = btoa(content);
 
-  <div>
-    <h2>Falco</h2>
-    <p id="falco">0</p>
-    <button onclick="increaseValue('falco')">Increase by 1</button>
-    <button onclick="decreaseValue('falco')">Decrease by 10</button>
-  </div>
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `token ${token}`
+      },
+      body: JSON.stringify({
+        message: 'Update values',
+        content: encodedContent,
+        sha: values.sha
+      })
+    });
 
-  <script>
-    // GitHub repository details
-    const username = 'lowlune';
-    const repo = 'pivnica';
-    const filename = 'values.json';
-    const token = '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';
-
-    // Values state
-    let values = {
-      adram: 0,
-      active: 0,
-      reaver: 0,
-      falco: 0
-    };
-
-    // Helper function to update the display
-    function updateDisplay() {
-      for (const key in values) {
-        document.getElementById(key).textContent = values[key];
-      }
+    if (response.ok) {
+      console.log('Values saved to GitHub');
+    } else {
+      console.error('Failed to save values to GitHub');
     }
+  } catch (error) {
+    console.error('Error saving values to GitHub', error);
+  }
+}
 
-    // Helper function to save values to GitHub
-    async function saveValuesToGitHub() {
-      try {
-        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
-        const content = JSON.stringify(values, null, 2);
-        const encodedContent = btoa(content);
+// Load values from GitHub on page load
+async function loadValuesFromGitHub() {
+  try {
+    const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+    const response = await fetch(url);
 
-        const response = await fetch(url, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `token ${token}`
-          },
-          body: JSON.stringify({
-            message: 'Update values',
-            content: encodedContent
-          })
-        });
-
-        if (response.ok) {
-          console.log('Values saved to GitHub');
-        } else {
-          console.error('Failed to save values to GitHub');
-        }
-      } catch (error) {
-        console.error('Error saving values to GitHub', error);
-      }
-    }
-
-    // Load values from GitHub on page load
-    async function loadValuesFromGitHub() {
-      try {
-        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
-        const response = await fetch(url);
-
-        if (response.ok) {
-          const data = await response.json();
-          const content = atob(data.content);
-          values = JSON.parse(content);
-          updateDisplay();
-        } else {
-          console.error('Failed to load values from GitHub');
-        }
-      } catch (error) {
-        console.error('Error loading values from GitHub', error);
-      }
-    }
-
-    // Helper function to increase a value by 1
-    function increaseValue(key) {
-      values[key]++;
+    if (response.ok) {
+      const data = await response.json();
+      const content = atob(data.content);
+      values = JSON.parse(content);
+      values.sha = data.sha;
       updateDisplay();
-      saveValuesToGitHub();
+    } else {
+      console.error('Failed to load values from GitHub');
     }
+  } catch (error) {
+    console.error('Error loading values from GitHub', error);
+  }
+}
 
-    // Helper function to decrease a value by 10
-    function decreaseValue(key) {
-      values[key] -= 10;
-      updateDisplay();
-      saveValuesToGitHub();
-    }
+// Helper function to increase a value by 1
+function increaseValue(key) {
+  values[key]++;
+  updateDisplay();
+  saveValuesToGitHub();
+}
 
-    // Call loadValuesFromGitHub on page load
-    loadValuesFromGitHub();
-  </script>
-</body>
-</html>
+// Helper function to decrease a value by 10
+function decreaseValue(key) {
+  values[key] -= 10;
+  updateDisplay();
+  saveValuesToGitHub();
+}
+
+// Call loadValuesFromGitHub on page load
+loadValuesFromGitHub();
