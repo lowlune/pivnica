@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Pivnica</title>
+  <title>Value Tracker</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -33,21 +33,25 @@
   <h1>Value Tracker</h1>
   <div class="value">
     <p id="adram">0</p>
+    <p>Adram</p>
     <button onclick="increaseValue('adram')">+1</button>
     <button onclick="decreaseValue('adram')">-10</button>
   </div>
   <div class="value">
     <p id="active">0</p>
+    <p>Active</p>
     <button onclick="increaseValue('active')">+1</button>
     <button onclick="decreaseValue('active')">-10</button>
   </div>
   <div class="value">
     <p id="reaver">0</p>
+    <p>Reaver</p>
     <button onclick="increaseValue('reaver')">+1</button>
     <button onclick="decreaseValue('reaver')">-10</button>
   </div>
   <div class="value">
     <p id="falco">0</p>
+    <p>Falco</p>
     <button onclick="increaseValue('falco')">+1</button>
     <button onclick="decreaseValue('falco')">-10</button>
   </div>
@@ -116,6 +120,9 @@
           values = JSON.parse(content);
           values.sha = data.sha;
           updateDisplay();
+        } else if (response.status === 404) {
+          // If the file doesn't exist, create it with the default values
+          await saveValuesToGitHub();
         } else {
           console.error('Failed to load values from GitHub');
         }
