@@ -61,7 +61,7 @@
     const username = 'lowlune';
     const repo = 'pivnica';
     const filename = 'values.json';
-    const token = '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';
+    const token = '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';
 
     // Values state
     let values = {
@@ -84,15 +84,14 @@
     // Helper function to save values to GitHub
     async function saveValuesToGitHub() {
       try {
-        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}?access_token=${token}`; // Updated line
         const content = JSON.stringify(values, null, 2);
         const encodedContent = btoa(content);
 
         const response = await fetch(url, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // Updated line
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             message: 'Update values',
@@ -119,39 +118,34 @@
 
         if (response.ok) {
           const data = await response.json();
-          const content = atob(data.content);
-          values = JSON.parse(content);
+          const decodedContent = atob(data.content);
+          values = JSON.parse(decodedContent);
           values.sha = data.sha;
-        } else if (response.status === 404) {
-          // If the file doesn't exist, create it with the default values
-          await saveValuesToGitHub();
+          updateDisplay();
         } else {
           console.error('Failed to load values from GitHub');
         }
       } catch (error) {
         console.error('Error loading values from GitHub', error);
       }
-
-      // Update the display after values are loaded
-      updateDisplay();
     }
 
-    // Helper function to increase a value by 1
+    // Increase the value by 1
     function increaseValue(key) {
       values[key]++;
       updateDisplay();
       saveValuesToGitHub();
     }
 
-    // Helper function to decrease a value by 10
+    // Decrease the value by 10
     function decreaseValue(key) {
       values[key] -= 10;
       updateDisplay();
       saveValuesToGitHub();
     }
 
-    // Function to run when the DOM content has loaded
-    document.addEventListener('DOMContentLoaded', loadValuesFromGitHub);
+    // Call loadValuesFromGitHub on page load
+    window.addEventListener('load', loadValuesFromGitHub);
   </script>
 </body>
 </html>
