@@ -122,7 +122,6 @@
           const content = atob(data.content);
           values = JSON.parse(content);
           values.sha = data.sha;
-          updateDisplay();
         } else if (response.status === 404) {
           // If the file doesn't exist, create it with the default values
           await saveValuesToGitHub();
@@ -132,6 +131,9 @@
       } catch (error) {
         console.error('Error loading values from GitHub', error);
       }
+
+      // Update the display after values are loaded
+      updateDisplay();
     }
 
     // Helper function to increase a value by 1
