@@ -81,36 +81,35 @@
       }
     }
 
-   // Helper function to save values to GitHub
-async function saveValuesToGitHub() {
-  try {
-    const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
-    const content = JSON.stringify(values, null, 2);
-    const encodedContent = btoa(content);
+    // Helper function to save values to GitHub
+    async function saveValuesToGitHub() {
+      try {
+        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+        const content = JSON.stringify(values, null, 2);
+        const encodedContent = btoa(content);
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // Updated line
-      },
-      body: JSON.stringify({
-        message: 'Update values',
-        content: encodedContent,
-        sha: values.sha
-      })
-    });
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Updated line
+          },
+          body: JSON.stringify({
+            message: 'Update values',
+            content: encodedContent,
+            sha: values.sha
+          })
+        });
 
-    if (response.ok) {
-      console.log('Values saved to GitHub');
-    } else {
-      console.error('Failed to save values to GitHub');
+        if (response.ok) {
+          console.log('Values saved to GitHub');
+        } else {
+          console.error('Failed to save values to GitHub');
+        }
+      } catch (error) {
+        console.error('Error saving values to GitHub', error);
+      }
     }
-  } catch (error) {
-    console.error('Error saving values to GitHub', error);
-  }
-}
-
 
     // Load values from GitHub on page load
     async function loadValuesFromGitHub() {
@@ -153,7 +152,6 @@ async function saveValuesToGitHub() {
 
     // Function to run when the DOM content has loaded
     document.addEventListener('DOMContentLoaded', loadValuesFromGitHub);
-
   </script>
 </body>
 </html>
