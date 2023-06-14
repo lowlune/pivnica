@@ -57,63 +57,117 @@
   </div>
 
   <script>
-    // GitHub OAuth configuration
+    // GitHub repository details
+    const username = 'lowlune';
+    const repo = 'pivnica';
+    const filename = 'values.json';
     const clientId = 'YOUR_CLIENT_ID';
     const redirectUri = 'https://your-website.com/oauth/callback';
-    const scope = 'repo';
 
-    // Function to initiate the login process
-    function login() {
-      // Generate a random state value
-      const state = Math.random().toString(36).substring(2);
+    // Values state
+    let values = {
+      adram: 0,
+      active: 0,
+      reaver: 0,
+      falco: 0
+    };
 
-      // Save the state value to local storage
-      localStorage.setItem('githubOAuthState', state);
-
-      // Redirect the user to the GitHub OAuth login page
-      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
+    // Helper function to update the display
+    function updateDisplay() {
+      for (const key in values) {
+        const element = document.getElementById(key);
+        if (element) {
+          element.textContent = values[key];
+        }
+      }
     }
 
-    // Function to handle the OAuth callback
-    async function handleCallback() {
-      // Retrieve the state and code from the URL query parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const state = urlParams.get('state');
-      const code = urlParams.get('code');
+    // Function to handle OAuth login
+    function login() {
+      // Redirect the user to the GitHub OAuth login page
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}`;
+    }
 
-      // Verify the state value
-      const savedState = localStorage.getItem('githubOAuthState');
-      if (state === savedState) {
-        // Exchange the authorization code for an access token
-        const response = await fetch('https://github.com/login/oauth/access_token', {
-          method: 'POST',
+    // Function to handle the OAuth callback after successful login
+    async function handleCallback() {
+      // Parse the access token from the URL hash
+      const params = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = params.get('access_token');
+
+      if (accessToken) {
+        // Store the access token in local storage or a secure storage mechanism
+        // This example uses local storage for simplicity
+        localStorage.setItem('githubAccessToken', accessToken);
+
+        // Retrieve the values from GitHub API
+        await getValuesFromGitHub();
+      } else {
+        console.log('Access token not found');
+      }
+    }
+
+    // Function to fetch the values from GitHub API
+    async function getValuesFromGitHub() {
+      try {
+        // Fetch the file contents from GitHub API
+        const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
           headers: {
-            'Content-Type': 'application/json'
+            'Authorization': `Bearer ${localStorage.getItem('githubAccessToken')}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (response.ok) {
+          // Parse the file contents
+          const data = await response.json();
+
+          if (data && data.content) {
+            // Decode and parse the file content as JSON
+            const content = atob(data.content);
+            values = JSON.parse(content);
+            updateDisplay();
+          }
+        } else {
+          console.log('Failed to fetch values from GitHub', response.status);
+        }
+      } catch (error) {
+        console.log('Error occurred while fetching values', error);
+      }
+    }
+
+    // Function to save the values to GitHub API
+    async function saveValuesToGitHub() {
+      try {
+        // Encode the values as JSON and convert it to base64
+        const content = btoa(JSON.stringify(values));
+
+        // Fetch the file details from GitHub API
+        const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('githubAccessToken')}`,
+            'Accept': 'application/vnd.github.v3+json'
           },
           body: JSON.stringify({
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            code: code,
-            state: state
+            message: 'Update values',
+            content: content,
+            sha: values.sha || null
           })
         });
 
         if (response.ok) {
-          // Parse the access token from the response
-          const data = await response.text();
-          const params = new URLSearchParams(data);
-          const accessToken = params.get('access_token');
+          // Parse the response to get the updated file details
+          const data = await response.json();
 
-          // Save the access token to local storage
-          localStorage.setItem('githubAccessToken', accessToken);
-
-          // Retrieve the values from GitHub API
-          await getValuesFromGitHub();
+          if (data && data.content) {
+            values.sha = data.content.sha;
+            console.log('Values saved to GitHub');
+          }
         } else {
-          console.log('Failed to exchange authorization code for access token', response.status);
+          console.log('Failed to save values to GitHub', response.status);
         }
-      } else {
-        console.log('Invalid state');
+      } catch (error) {
+        console.log('Error occurred while saving values', error);
       }
     }
 
