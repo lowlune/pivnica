@@ -84,14 +84,15 @@
     // Helper function to save values to GitHub
     async function saveValuesToGitHub() {
       try {
-        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}?access_token=${token}`; // Updated line
+        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
         const content = JSON.stringify(values, null, 2);
         const encodedContent = btoa(content);
 
         const response = await fetch(url, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Updated line
           },
           body: JSON.stringify({
             message: 'Update values',
@@ -110,7 +111,7 @@
       }
     }
 
-    // Load values from GitHub on page load
+    // Load values from GitHub
     async function loadValuesFromGitHub() {
       try {
         const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
