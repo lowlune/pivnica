@@ -1,87 +1,145 @@
-// GitHub repository details
-const username = 'lowlune';
-const repo = 'pivnica';
-const filename = 'values.json';
-const token = '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';
-
-// Values state
-let values = {
-  adram: 0,
-  active: 0,
-  reaver: 0,
-  falco: 0
-};
-
-// Helper function to update the display
-function updateDisplay() {
-  for (const key in values) {
-    document.getElementById(key).textContent = values[key];
-  }
-}
-
-// Helper function to save values to GitHub
-async function saveValuesToGitHub() {
-  try {
-    const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
-    const content = JSON.stringify(values, null, 2);
-    const encodedContent = btoa(content);
-
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `token ${token}`
-      },
-      body: JSON.stringify({
-        message: 'Update values',
-        content: encodedContent,
-        sha: values.sha
-      })
-    });
-
-    if (response.ok) {
-      console.log('Values saved to GitHub');
-    } else {
-      console.error('Failed to save values to GitHub');
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Value Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 40px;
     }
-  } catch (error) {
-    console.error('Error saving values to GitHub', error);
-  }
-}
 
-// Load values from GitHub on page load
-async function loadValuesFromGitHub() {
-  try {
-    const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
-    const response = await fetch(url);
+    h1 {
+      color: #333;
+    }
 
-    if (response.ok) {
-      const data = await response.json();
-      const content = atob(data.content);
-      values = JSON.parse(content);
-      values.sha = data.sha;
+    .value {
+      display: inline-block;
+      margin: 10px;
+    }
+
+    .value p {
+      font-size: 24px;
+    }
+
+    .value button {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Value Tracker</h1>
+  <div class="value">
+    <p>adram</p>
+    <button onclick="increaseValue('adram')">+1</button>
+    <button onclick="decreaseValue('adram')">-10</button>
+  </div>
+  <div class="value">
+    <p>active</p>
+    <button onclick="increaseValue('active')">+1</button>
+    <button onclick="decreaseValue('active')">-10</button>
+  </div>
+  <div class="value">
+    <p>reaver</p>
+    <button onclick="increaseValue('reaver')">+1</button>
+    <button onclick="decreaseValue('reaver')">-10</button>
+  </div>
+  <div class="value">
+    <p>falco</p>
+    <button onclick="increaseValue('falco')">+1</button>
+    <button onclick="decreaseValue('falco')">-10</button>
+  </div>
+
+  <script>
+    // GitHub repository details
+    const username = 'lowlune';
+    const repo = 'pivnica';
+    const filename = 'values.json';
+    const token = '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';
+
+    // Values state
+    let values = {
+      adram: 0,
+      active: 0,
+      reaver: 0,
+      falco: 0
+    };
+
+    // Helper function to update the display
+    function updateDisplay() {
+      for (const key in values) {
+        document.getElementById(key).textContent = values[key];
+      }
+    }
+
+    // Helper function to save values to GitHub
+    async function saveValuesToGitHub() {
+      try {
+        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+        const content = JSON.stringify(values, null, 2);
+        const encodedContent = btoa(content);
+
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `token ${token}`
+          },
+          body: JSON.stringify({
+            message: 'Update values',
+            content: encodedContent,
+            sha: values.sha
+          })
+        });
+
+        if (response.ok) {
+          console.log('Values saved to GitHub');
+        } else {
+          console.error('Failed to save values to GitHub');
+        }
+      } catch (error) {
+        console.error('Error saving values to GitHub', error);
+      }
+    }
+
+    // Load values from GitHub on page load
+    async function loadValuesFromGitHub() {
+      try {
+        const url = `https://api.github.com/repos/${username}/${repo}/contents/${filename}`;
+        const response = await fetch(url);
+
+        if (response.ok) {
+          const data = await response.json();
+          const content = atob(data.content);
+          values = JSON.parse(content);
+          values.sha = data.sha;
+          updateDisplay();
+        } else {
+          console.error('Failed to load values from GitHub');
+        }
+      } catch (error) {
+        console.error('Error loading values from GitHub', error);
+      }
+    }
+
+    // Helper function to increase a value by 1
+    function increaseValue(key) {
+      values[key]++;
       updateDisplay();
-    } else {
-      console.error('Failed to load values from GitHub');
+      saveValuesToGitHub();
     }
-  } catch (error) {
-    console.error('Error loading values from GitHub', error);
-  }
-}
 
-// Helper function to increase a value by 1
-function increaseValue(key) {
-  values[key]++;
-  updateDisplay();
-  saveValuesToGitHub();
-}
+    // Helper function to decrease a value by 10
+    function decreaseValue(key) {
+      values[key] -= 10;
+      updateDisplay();
+      saveValuesToGitHub();
+    }
 
-// Helper function to decrease a value by 10
-function decreaseValue(key) {
-  values[key] -= 10;
-  updateDisplay();
-  saveValuesToGitHub();
-}
-
-// Call loadValuesFromGitHub on page load
-loadValuesFromGitHub();
+    // Call loadValuesFromGitHub on page load
+    loadValuesFromGitHub();
+  </script>
+</body>
+</html>
