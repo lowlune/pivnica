@@ -74,7 +74,10 @@
     // Helper function to update the display
     function updateDisplay() {
       for (const key in values) {
-        document.getElementById(key).textContent = values[key];
+        const element = document.getElementById(key);
+        if (element) {
+          element.textContent = values[key];
+        }
       }
     }
 
@@ -145,8 +148,9 @@
       saveValuesToGitHub();
     }
 
-    // Call loadValuesFromGitHub on page load
-    loadValuesFromGitHub();
+    // Function to run when the DOM content has loaded
+    document.addEventListener('DOMContentLoaded', loadValuesFromGitHub);
+
   </script>
 </body>
 </html>
